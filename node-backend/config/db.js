@@ -10,7 +10,9 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 const connectDB = async () => {
   try {
     //connection with db using mongoose connect method and passing the connection string from environment variable
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGO_URI, {
+        dbName: 'youtube-clone'
+    });
     console.log("MongoDB Connected");
   } catch (error) {
     console.error("Connection Failed:", error.message);

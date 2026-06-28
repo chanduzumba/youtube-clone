@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import morgan from 'morgan' //import morgan for logging HTTP requests
 import cors from 'cors'
 import connectDB from './config/db.js'
+import authRoutes from './routes/auth.routes.js'
 
 //configure dot env for reading env variables
 dotenv.config()
@@ -24,6 +25,10 @@ app.use(cors()) // use cors to allow cross-origin requests from frontend running
 app.get('/' , (req,res)=>{
     res.send("HELLO FROM ROOT ROUTE")
 })
+
+//routes for different functionality
+//auth routes
+app.use('/api/auth', authRoutes)
 
 //DB connection
 connectDB()
