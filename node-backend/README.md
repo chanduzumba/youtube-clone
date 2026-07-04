@@ -1,18 +1,17 @@
 ### User relationship with other entities in the system is as follows:
-
 User (1)
    │
-   │ owns
-   ▼
-Channel (1)
-   │
-   │ has many
-   ▼
-Video (Many)
-   │
-   │ has many
-   ▼
-Comment (Many)
+   └──────────────┐
+                  │
+             Channel (One)
+                  │
+                  └─────────────┐
+                                │
+                           Video (Many)
+                                │
+                                └──────────────┐
+                                               │
+                                          Comment (Many)
 
 ### Video relationship with other entities in the system is as follows:
 User

@@ -4,6 +4,7 @@ import morgan from 'morgan' //import morgan for logging HTTP requests
 import cors from 'cors'
 import connectDB from './config/db.js'
 import authRoutes from './routes/auth.routes.js'
+import channelRoutes from './routes/channel.routes.js'
 
 //configure dot env for reading env variables
 dotenv.config()
@@ -29,6 +30,8 @@ app.get('/' , (req,res)=>{
 //routes for different functionality
 //auth routes
 app.use('/api/auth', authRoutes)
+//channel routes
+app.use('/api/channel', channelRoutes)
 
 //DB connection
 connectDB()

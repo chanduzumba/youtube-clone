@@ -35,6 +35,7 @@ const channelSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      unique: true
     },
 
     subscribersCount: {
@@ -57,8 +58,6 @@ const channelSchema = new mongoose.Schema(
 // Indexes
 //filtering channel by channelName
 channelSchema.index({ channelName: "text" });
-//listing channels of a user
-channelSchema.index({ owner: 1 });
 
 //Channel model
 const Channel = mongoose.model("Channel", channelSchema);
