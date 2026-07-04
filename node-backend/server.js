@@ -5,6 +5,7 @@ import cors from 'cors'
 import connectDB from './config/db.js'
 import authRoutes from './routes/auth.routes.js'
 import channelRoutes from './routes/channel.routes.js'
+import videoRoutes from './routes/video.routes.js'
 
 //configure dot env for reading env variables
 dotenv.config()
@@ -32,6 +33,8 @@ app.get('/' , (req,res)=>{
 app.use('/api/auth', authRoutes)
 //channel routes
 app.use('/api/channel', channelRoutes)
+//video routes
+app.use('/api/videos', videoRoutes)
 
 //DB connection
 connectDB()
