@@ -69,6 +69,19 @@ const videoSchema = new mongoose.Schema(
       min: 0,
     },
 
+    likedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+
+    dislikedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     visibility: {
       type: String,
       enum: ["public", "private", "unlisted"],
@@ -89,7 +102,7 @@ const videoSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 //Adding indexes for faster searching and filtering:

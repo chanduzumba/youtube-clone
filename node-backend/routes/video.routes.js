@@ -8,6 +8,8 @@ import {
   getVideoById,
   updateVideo,
   deleteVideo,
+  toggleLike,
+  toggleDislike,
 } from "../controllers/video.controller.js";
 
 const router = express.Router();
@@ -29,5 +31,11 @@ router.put("/:id", protect, updateVideo);
 
 // protected route to delete a video by its ID
 router.delete("/:id", protect, deleteVideo);
+
+// protected route to toggle like on a video by its ID
+router.patch("/:id/like", protect, toggleLike);
+
+// protected route to toggle dislike on a video by its ID
+router.patch("/:id/dislike", protect, toggleDislike);
 
 export default router;
