@@ -6,6 +6,7 @@ import connectDB from './config/db.js'
 import authRoutes from './routes/auth.routes.js'
 import channelRoutes from './routes/channel.routes.js'
 import videoRoutes from './routes/video.routes.js'
+import commentRoutes from './routes/comment.routes.js'
 
 //configure dot env for reading env variables
 dotenv.config()
@@ -35,6 +36,8 @@ app.use('/api/auth', authRoutes)
 app.use('/api/channel', channelRoutes)
 //video routes
 app.use('/api/videos', videoRoutes)
+//comment routes
+app.use('/api/comments', commentRoutes)
 
 //DB connection
 connectDB()
