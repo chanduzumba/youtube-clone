@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi2";
 import axios from "axios";
 import VideoCard from "../components/VideoCard";
@@ -18,9 +19,12 @@ const categories = [
 ];
 
 const Home = () => {
+  const location = useLocation();
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef(null);
 
   const scrollCategories = (direction) => {
@@ -34,10 +38,27 @@ const Home = () => {
   };
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setSearchQuery(params.get("search") || "");
+  }, [location.search]);
+
+  useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/videos");
+        setLoading(true);
+        const params = {};
+
+        if (searchQuery.trim()) {
+          params.search = searchQuery.trim();
+        }
+
+        if (selectedCategory !== "All") {
+          params.category = selectedCategory;
+        }
+
+        const response = await axios.get("http://localhost:5000/api/videos", { params });
         setVideos(response.data?.videos || []);
+        setError("");
       } catch (err) {
         setError("Failed to load videos");
       } finally {
@@ -46,11 +67,16 @@ const Home = () => {
     };
 
     fetchVideos();
-  }, []);
+  }, [searchQuery, selectedCategory]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="text-sm text-[#606060]">
+          {searchQuery ? `Showing results for “${searchQuery}”` : "Browse videos"}
+        </div>
+
+        <div className="flex items-center gap-2">
         <button
           type="button"
           aria-label="Scroll categories left"
@@ -65,12 +91,13 @@ const Home = () => {
           className="flex flex-1 gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden"
         >
           {categories.map((category) => {
-            const isSelected = category === "All";
+            const isSelected = category === selectedCategory;
 
             return (
               <button
                 key={category}
                 type="button"
+                onClick={() => setSelectedCategory(category)}
                 className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition ${
                   isSelected
                     ? "bg-[#0f0f0f] text-white"
@@ -91,6 +118,7 @@ const Home = () => {
         >
           <HiChevronRight className="h-5 w-5 text-[#0f0f0f]" />
         </button>
+        </div>
       </div>
 
       {loading && <p className="text-[#606060]">Loading videos...</p>}

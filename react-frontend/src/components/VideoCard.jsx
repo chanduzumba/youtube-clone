@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { HiEllipsisVertical } from "react-icons/hi2";
 
 const formatRelativeTime = (value) => {
@@ -32,7 +33,8 @@ const VideoCard = ({ video }) => {
   const relativeTime = useMemo(() => formatRelativeTime(video.createdAt), [video.createdAt]);
 
   return (
-    <article className="w-full max-w-[320px] cursor-pointer overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
+    <article className="w-full max-w-[320px] overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
+      <Link to={`/watch/${video._id}`} className="block">
       <div className="relative">
         <img
           src={video.thumbnailUrl}
@@ -43,6 +45,8 @@ const VideoCard = ({ video }) => {
           {formatDuration(video.duration || 0)}
         </span>
       </div>
+
+      </Link>
 
       <div className="flex gap-3 p-3">
         <img

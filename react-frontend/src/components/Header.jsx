@@ -38,10 +38,18 @@ const YouTubeLogo = () => (
 export default function Header() {
   const [query, setQuery] = useState("");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // Handles the search form submission without reloading the page
   const handleSearch = (e) => {
     e.preventDefault();
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery) {
+      navigate(`/?search=${encodeURIComponent(trimmedQuery)}`);
+    } else {
+      navigate("/");
+    }
   };
 
   return (
