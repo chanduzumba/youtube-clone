@@ -193,3 +193,137 @@ export const deleteComment = async (req, res) => {
     });
   }
 };
+
+/**
+ * Toggle Like
+ * PATCH /api/comments/:id/like
+ * Private
+ */
+export const toggleLike = async (req, res) => {
+  try {
+    // fetch comment by ID
+    const comment = await Comment.findById(req.params.id);
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: "Video not found.",
+      });
+    }
+
+    const userId = req.user._id.toString();
+
+    // check if user has already liked the comment
+    const liked = comment.likedBy.some(
+      (id) => id.toString() === userId
+    );
+
+    // check if user has already disliked the comment
+    const disliked = comment.dislikedBy.some(
+      (id) => id.toString() === userId
+    );
+
+    if (liked) {
+      // remove like if already liked
+      comment.likedBy = comment.likedBy.filter(
+        (id) => id.toString() !== userId
+      );
+      comment.likes = Math.max(comment.likes - 1, 0);
+    } else {
+      // add like
+      comment.likedBy.push(userId);
+      comment.likes += 1;
+      // remove dislike if user previously disliked
+      if (disliked) {
+        comment.dislikedBy = comment.dislikedBy.filter(
+          (id) => id.toString() !== userId
+        );
+        comment.dislikes = Math.max(comment.dislikes - 1, 0);
+      }
+    }
+
+    // save updated comment
+    await comment.save();
+
+    // return updated like and dislike counts
+    res.status(200).json({
+      success: true,
+      likes: comment.likedBy.length,
+      dislikes: comment.dislikedBy.length,
+      liked: !liked,
+      disliked: false,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * Toggle Dislike
+ * PATCH /api/comments/:id/dislike
+ * Private
+ */
+export const toggleDislike = async (req, res) => {
+  try {
+    // fetch comment by ID
+    const comment = await Comment.findById(req.params.id);
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: "Video not found.",
+      });
+    }
+
+    const userId = req.user._id.toString();
+
+    // check if user has already liked the comment
+    const liked = comment.likedBy.some(
+      (id) => id.toString() === userId
+    );
+
+    // check if user has already disliked the comment
+    const disliked = comment.dislikedBy.some(
+      (id) => id.toString() === userId
+    );
+
+    if (disliked) {
+      // remove dislike if already disliked
+      comment.dislikedBy = comment.dislikedBy.filter(
+        (id) => id.toString() !== userId
+      );
+      comment.dislikes = Math.max(comment.dislikes - 1, 0);
+    } else {
+      // add dislike
+      comment.dislikedBy.push(userId);
+      comment.dislikes += 1;
+      // remove like if user previously liked
+      if (liked) {
+        comment.likedBy = comment.likedBy.filter(
+          (id) => id.toString() !== userId
+        );
+        comment.likes = Math.max(comment.likes - 1, 0);
+      }
+    }
+
+    // save updated comment
+    await comment.save();
+
+    // return updated like and dislike counts
+    res.status(200).json({
+      success: true,
+      likes: comment.likedBy.length,
+      dislikes: comment.dislikedBy.length,
+      liked: false,
+      disliked: !disliked,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

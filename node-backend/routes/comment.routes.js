@@ -7,6 +7,8 @@ import {
   getCommentById,
   updateComment,
   deleteComment,
+  toggleDislike,
+  toggleLike,
 } from "../controllers/comment.controller.js";
 
 const router = express.Router();
@@ -25,5 +27,10 @@ router.put("/:id", protect, updateComment);
 
 // protected route to delete a comment by its ID
 router.delete("/:id", protect, deleteComment);
+
+//like a comment
+router.post("/:id/like", protect, toggleLike);
+//dislike a comment
+router.post("/:id/dislike", protect, toggleDislike);  
 
 export default router;
