@@ -360,7 +360,7 @@ function Watch() {
           <video
             controls
             autoPlay
-            className="aspect-video w-full"
+            className="aspect-video w-full" 
             src={video.videoUrl}
           />
         </div>
