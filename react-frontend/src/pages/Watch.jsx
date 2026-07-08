@@ -12,6 +12,44 @@ import {
 } from "react-icons/hi2";
 import { FaCircleUser } from "react-icons/fa6";
 
+const getYouTubeEmbedUrl = (url) => {
+  if (!url) return "";
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace("www.", "");
+    if (hostname === "youtu.be") {
+      return `https://www.youtube.com/embed/${parsed.pathname.slice(1)}`;
+    }
+    if (hostname === "youtube.com" || hostname === "youtube-nocookie.com") {
+      if (parsed.pathname === "/watch") {
+        const id = parsed.searchParams.get("v");
+        return id ? `https://www.youtube.com/embed/${id}` : "";
+      }
+      if (parsed.pathname.startsWith("/embed/")) {
+        return url;
+      }
+      if (parsed.pathname.startsWith("/shorts/")) {
+        const id = parsed.pathname.split("/").pop();
+        return `https://www.youtube.com/embed/${id}`;
+      }
+    }
+    return "";
+  } catch {
+    return "";
+  }
+};
+
+const isYouTubeUrl = (url) => {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace("www.", "");
+    return ["youtube.com", "youtu.be", "youtube-nocookie.com"].includes(hostname);
+  } catch {
+    return false;
+  }
+};
+
 const formatRelativeTime = (value) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Recently uploaded";
@@ -357,12 +395,21 @@ function Watch() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_340px]">
       <div className="space-y-4">
         <div className="overflow-hidden rounded-xl bg-black">
-          <video
-            controls
-            autoPlay
-            className="aspect-video w-full" 
-            src={video.videoUrl}
-          />
+          {isYouTubeUrl(video.videoUrl) ? (
+            <iframe
+              src={getYouTubeEmbedUrl(video.videoUrl)}
+              title={video.title}
+              className="aspect-video w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <video
+              controls
+              className="aspect-video w-full"
+              src={video.videoUrl}
+            />
+          )}
         </div>
 
         <div className="space-y-3">

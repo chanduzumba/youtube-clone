@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { HiUserCircle, HiPlus, HiArrowRight, HiPencilSquare } from "react-icons/hi2";
+import VideoCard from "../components/VideoCard.jsx";
 
 const defaultBanner = "https://via.placeholder.com/1400x350?text=Channel+Banner";
 const defaultLogo = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
@@ -218,21 +219,9 @@ function Profile() {
                 No videos uploaded yet.
               </div>
             ) : (
-              <div className="mt-6 space-y-4">
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {videos.map((video) => (
-                  <Link
-                    key={video._id}
-                    to={`/watch/${video._id}`}
-                    className="block overflow-hidden rounded-3xl border border-[#e5e5e5] bg-[#fafafa] p-4 transition hover:border-[#d1d5db]"
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="font-semibold text-[#0f0f0f]">{video.title}</p>
-                        <p className="mt-1 text-sm text-[#606060]">{video.views} views</p>
-                      </div>
-                      <p className="text-sm text-[#606060]">{new Date(video.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  </Link>
+                  <VideoCard key={video._id} video={video} />
                 ))}
               </div>
             )}
