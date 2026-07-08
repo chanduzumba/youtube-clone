@@ -1,4 +1,3 @@
-import React from "react";
 import { FaRegUserCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -6,8 +5,8 @@ const SignInButton = () => {
   const navigate = useNavigate();
   return (
     <button
-      onClick={() => navigate("/auth")}
-      className="signin-btn  text-blue-500 border rounded-2xl  px-3 py-1.5 flex items-center gap-2 font-medium transition-colors duration-200 cursor-pointer"
+      onClick={() => navigate("/login")}
+      className="signin-btn flex items-center text-blue-500 gap-2 rounded-2xl border border-[#e5e5e5] px-3 py-1.5 text-sm font-medium transition-colors duration-200"
     >
       <FaRegUserCircle className="text-xl" />
       Sign in

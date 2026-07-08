@@ -72,18 +72,18 @@ const Home = () => {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        <div className="text-sm text-[#606060]">
+        {/* <div className="text-sm text-[#606060]">
           {searchQuery ? `Showing results for “${searchQuery}”` : "Browse videos"}
-        </div>
+        </div> */}
 
         <div className="flex items-center gap-2">
         <button
           type="button"
           aria-label="Scroll categories left"
           onClick={() => scrollCategories("left")}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-sm"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e5e5e5] bg-white shadow-sm"
         >
-          <HiChevronLeft className="h-5 w-5 text-[#0f0f0f]" />
+          <HiChevronLeft className="h-5 w-5 text-zinc-700" />
         </button>
 
         <div
@@ -114,9 +114,9 @@ const Home = () => {
           type="button"
           aria-label="Scroll categories right"
           onClick={() => scrollCategories("right")}
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-sm"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#e5e5e5] bg-white shadow-sm"
         >
-          <HiChevronRight className="h-5 w-5 text-[#0f0f0f]" />
+          <HiChevronRight className="h-5 w-5 text-zinc-700" />
         </button>
         </div>
       </div>

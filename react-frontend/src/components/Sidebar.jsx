@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import {
   HiHome,
@@ -65,13 +66,13 @@ function SidebarRow({ icon: Icon, label, mini, to }) {
           : "px-3 py-2.5 text-[14px]"
       }`}
     >
-      <Icon className="h-6 w-6" />
-      <span className={mini ? "" : "font-normal text-[#0f0f0f]"}>{label}</span>
+      <Icon className="h-6 w-6 text-zinc-700" />
+      <span className={mini ? "text-zinc-700" : "font-normal text-zinc-700"}>{label}</span>
     </Link>
   );
 }
 
-function Section({ title, links, mini }) {
+function Section({ title, links, mini, isLoggedIn = false }) {
   // Groups related sidebar items into a section block
   if (mini) {
     return (
@@ -83,6 +84,7 @@ function Section({ title, links, mini }) {
     );
   }
   if (title === "Guest") {
+    if (isLoggedIn) return null;
     return (
       <div className="border-b border-[#e5e5e5] p-4">
         <small>Sign in to like videos, comment, and subscribe.</small>
@@ -114,6 +116,39 @@ function Section({ title, links, mini }) {
 export default function Sidebar() {
   // Reads the sidebar open state from Redux so the layout can expand or collapse
   const isOpen = useSelector((state) => state.sidebar.isOpen);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const syncAuthState = () => {
+    setIsLoggedIn(Boolean(localStorage.getItem("token")));
+  };
+
+  useEffect(() => {
+    syncAuthState();
+
+    const handleStorage = (event) => {
+      if (event.key === "token" || event.key === "user") {
+        syncAuthState();
+      }
+    };
+
+    const handleAuthChange = () => syncAuthState();
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("auth-state-changed", handleAuthChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("auth-state-changed", handleAuthChange);
+    };
+  }, []);
+
+  const mainSectionLinks = useMemo(() => {
+    if (!isLoggedIn) return mainLinks;
+    return [
+      { icon: HiHome, label: "Home", to: "/" },
+      { icon: SiYoutubeshorts, label: "Shorts" },
+    ];
+  }, [isLoggedIn]);
 
   return (
     <aside
@@ -125,10 +160,17 @@ export default function Sidebar() {
     >
       {isOpen ? (
         <>
-          <Section links={mainLinks} />
-          <Section title="Subscriptions   >" links={subscriptions} />
-          <Section title="You   >" links={libraryLinks} />
-          <Section title="Guest" />
+          <Section links={mainSectionLinks} />
+          {isLoggedIn ? (
+            <>
+              <Section title="Subscriptions   >" links={subscriptions} />
+              <Section title="You   >" links={libraryLinks} />
+            </>
+          ) : (
+            <>
+              <Section title="Guest" isLoggedIn={isLoggedIn} />
+            </>
+          )}
           <Section title="Explore" links={exploreLinks} />
           <Section title="Footer" />
         </>

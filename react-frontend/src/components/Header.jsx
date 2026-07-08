@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   HiBars3,
   HiMagnifyingGlass,
@@ -6,9 +6,10 @@ import {
   HiVideoCamera,
   HiBell,
   HiUserCircle,
+  HiPlus,
 } from "react-icons/hi2";
-import { FaRegUserCircle  } from "react-icons/fa";
-import { HiEllipsisVertical } from 'react-icons/hi2';
+import { FaRegUserCircle } from "react-icons/fa";
+import { HiEllipsisVertical } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { toggleSidebar } from "../redux/sidebarSlice";
@@ -37,8 +38,29 @@ const YouTubeLogo = () => (
 
 export default function Header() {
   const [query, setQuery] = useState("");
+  const [user, setUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Handles the search form submission without reloading the page
   const handleSearch = (e) => {
@@ -52,16 +74,25 @@ export default function Header() {
     }
   };
 
+  const handleSignOut = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    window.dispatchEvent(new Event("auth-state-changed"));
+    setUser(null);
+    setMenuOpen(false);
+    navigate("/");
+  };
+
   return (
     // Top header with menu, search, and action buttons for the app shell
-    <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between bg-white px-4">
+    <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-[#e5e5e5] bg-white px-4">
       <div className="flex min-w-[170px] items-center gap-4">
         <button
           onClick={() => dispatch(toggleSidebar())}
           className="rounded-full p-2 transition hover:bg-black/5"
           aria-label="Menu"
         >
-          <HiBars3 className="h-6 w-6 text-[#0f0f0f]" />
+          <HiBars3 className="h-6 w-6 text-zinc-800" />
         </button>
         <a href="/">
           <YouTubeLogo />
@@ -84,14 +115,14 @@ export default function Header() {
             className="flex h-10 w-16 items-center justify-center rounded-r-full border border-l-0 border-[#ccc] bg-[#f8f8f8] hover:bg-[#f0f0f0]"
             aria-label="Search"
           >
-            <HiMagnifyingGlass className="h-5 w-5 text-[#0f0f0f]" />
+            <HiMagnifyingGlass className="h-5 w-5 text-zinc-700" />
           </button>
         </form>
         <button
           className="ml-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f8f8f8] hover:bg-[#f0f0f0]"
           aria-label="Search with voice"
         >
-          <HiMicrophone className="h-5 w-5" />
+          <HiMicrophone className="h-5 w-5 text-zinc-700" />
         </button>
       </div>
 
@@ -116,10 +147,65 @@ export default function Header() {
         </button>
       </div> */}
       <div className="flex min-w-42.5 items-center justify-end gap-2">
-         <button className="signin-btn px-3 py-1.5 flex items-center gap-2 font-black transition-colors duration-200 cursor-pointer">
-          <HiEllipsisVertical  className="text-xl" />
-        </button>
-        <SignInButton />
+        {user ? (
+          <>
+            <button
+              className="rounded-3xl bg-[#f2f2f2] p-2 flex items-center"
+              aria-label="Create"
+            >
+              <HiPlus className="h-5 w-5 text-zinc-700" /> Create
+            </button>
+            <button
+              className="rounded-full bg-[#f2f2f2] p-2"
+              aria-label="Notifications"
+            >
+              <HiBell className="h-5 w-5 text-zinc-700" />
+            </button>
+            <div className="relative" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((open) => !open)}
+                className="rounded-full focus:outline-none"
+                aria-label="Open account menu"
+              >
+                <img
+                  src={
+                    user.avatar ||
+                    "https://ui-avatars.com/api/?name=" + user.username
+                  }
+                  alt={user.username}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              </button>
+
+              {menuOpen && (
+                <div className="absolute right-0 top-11 w-44 rounded-xl border border-[#e5e5e5] bg-white p-2 shadow-lg">
+                  <Link
+                    to="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center rounded-lg px-3 py-2 text-sm text-zinc-700 hover:bg-[#f2f2f2]"
+                  >
+                    Your Channel
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="flex w-full items-center rounded-lg px-3 py-2 text-left text-sm text-zinc-700 hover:bg-[#f2f2f2]"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <button className="signin-btn px-3 py-1.5 flex items-center gap-2 font-black transition-colors duration-200 cursor-pointer">
+              <HiEllipsisVertical className="text-xl" />
+            </button>
+            <SignInButton />
+          </>
+        )}
       </div>
     </header>
   );

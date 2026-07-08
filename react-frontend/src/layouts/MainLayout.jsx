@@ -6,14 +6,12 @@ import { useTheme } from "../context/ThemeContext.jsx";
 import { toggleSidebar } from "../redux/sidebarSlice";
 
 const MainLayout = () => {
-  // Use the shared theme state for layout colors
-  const { isDark } = useTheme();
+  // Keep the app shell light so icons and text stay clearly visible
   const dispatch = useDispatch();
-  // Use the sidebar open state from Redux to adjust the main content padding
   const isOpen = useSelector((state) => state.sidebar.isOpen);
 
   return (
-    <div className={`min-h-screen ${isDark ? "bg-zinc-950 text-zinc-100" : "bg-zinc-50 text-zinc-900"}`}>
+    <div className="min-h-screen bg-white text-zinc-900">
       <Header />
       <Sidebar />
 
