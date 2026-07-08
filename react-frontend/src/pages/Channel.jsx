@@ -16,6 +16,8 @@ function Channel() {
   const [activeTab, setActiveTab] = useState("Videos");
   const [search, setSearch] = useState("");
   const [user, setUser] = useState(null);
+  const [deleteCandidateId, setDeleteCandidateId] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const authToken = useMemo(() => localStorage.getItem("token") || "", []);
   const currentUser = useMemo(() => {
@@ -28,7 +30,8 @@ function Channel() {
     }
   }, []);
 
-  const isOwner = !!channel && !!currentUser && channel.owner?._id === currentUser._id;
+  const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId || currentUser?.userID;
+  const isOwner = !!channel && !!currentUserId && channel.owner?._id === currentUserId;
 
   useEffect(() => {
     const fetchChannel = async () => {
@@ -75,6 +78,31 @@ function Channel() {
     } catch (err) {
       setError(err.response?.data?.message || "Unable to delete channel.");
     }
+  };
+
+  const handleDeleteVideo = async (videoId) => {
+    setDeleteCandidateId(videoId);
+  };
+
+  const confirmDeleteVideo = async () => {
+    if (!deleteCandidateId) return;
+    setDeleteLoading(true);
+    setError("");
+    try {
+      await axios.delete(`http://localhost:5000/api/videos/${deleteCandidateId}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      setVideos((prev) => prev.filter((video) => video._id !== deleteCandidateId));
+      setDeleteCandidateId(null);
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to delete video.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const cancelDeleteVideo = () => {
+    setDeleteCandidateId(null);
   };
 
   if (loading) {
@@ -226,7 +254,13 @@ function Channel() {
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {videos.map((video) => (
-                      <VideoCard key={video._id} video={video} />
+                      <VideoCard
+                        key={video._id}
+                        video={video}
+                        isOwner={isOwner}
+                        onEdit={(videoId) => navigate(`/edit-video/${videoId}`)}
+                        onDelete={handleDeleteVideo}
+                      />
                     ))}
                   </div>
                 )}
@@ -280,7 +314,34 @@ function Channel() {
           </div>
         </aside>
       </div>
-    </div>
+      {deleteCandidateId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 py-8">
+          <div className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-xl">
+            <h3 className="text-xl font-semibold text-[#0f172a]">Delete video?</h3>
+            <p className="mt-3 text-sm text-[#64748b]">
+              Are you sure you want to delete this video? This action cannot be undone.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={cancelDeleteVideo}
+                disabled={deleteLoading}
+                className="rounded-full border border-[#e5e5e5] bg-white px-5 py-3 text-sm font-medium text-[#0f172a] hover:bg-[#f8fafc]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteVideo}
+                disabled={deleteLoading}
+                className="rounded-full bg-red-500 px-5 py-3 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-70"
+              >
+                {deleteLoading ? "Deleting..." : "Delete video"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}    </div>
   );
 }
 

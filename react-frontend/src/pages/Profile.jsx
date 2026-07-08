@@ -221,7 +221,13 @@ function Profile() {
             ) : (
               <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {videos.map((video) => (
-                  <VideoCard key={video._id} video={video} />
+                  <VideoCard
+                    key={video._id}
+                    video={video}
+                    isOwner={true}
+                    onEdit={(videoId) => navigate(`/edit-video/${videoId}`)}
+                    onDelete={(videoId) => navigate(`/channel/${channel?._id}`)}
+                  />
                 ))}
               </div>
             )}
