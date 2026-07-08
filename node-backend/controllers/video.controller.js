@@ -81,6 +81,10 @@ export const getAllVideos = async (req, res) => {
       filter.category = category;
     }
 
+    if (req.query.channel) {
+      filter.channel = req.query.channel;
+    }
+
     // fetch videos with optional filters and populate relations
     const videos = await Video.find(filter)
       .populate("uploader", "username avatar")
