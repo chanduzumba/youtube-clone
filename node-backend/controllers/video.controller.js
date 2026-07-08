@@ -305,15 +305,18 @@ export const toggleLike = async (req, res) => {
       video.likedBy = video.likedBy.filter(
         (id) => id.toString() !== userId
       );
+      video.likes -= 1;
     } else {
       // add like
       video.likedBy.push(userId);
+      video.likes += 1;
 
       // remove dislike if user previously disliked
       if (disliked) {
         video.dislikedBy = video.dislikedBy.filter(
           (id) => id.toString() !== userId
         );
+        video.dislikes -= 1;
       }
     }
 
@@ -370,15 +373,17 @@ export const toggleDislike = async (req, res) => {
       video.dislikedBy = video.dislikedBy.filter(
         (id) => id.toString() !== userId
       );
+      video.dislikes -= 1;
     } else {
       // add dislike
       video.dislikedBy.push(userId);
-
+      video.dislikes += 1;
       // remove like if user previously liked
       if (liked) {
         video.likedBy = video.likedBy.filter(
           (id) => id.toString() !== userId
         );
+        video.likes -= 1;
       }
     }
 
