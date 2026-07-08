@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { HiEllipsisVertical, HiHandThumbUp, HiShare, HiChatBubbleLeft } from "react-icons/hi2";
+import { HiEllipsisVertical, HiHandThumbUp, HiShare, HiChatBubbleLeft, HiPencil, HiTrash, HiFlag } from "react-icons/hi2";
 import { FaCircleUser } from "react-icons/fa6";
 
 const formatRelativeTime = (value) => {
@@ -33,11 +33,13 @@ function Watch() {
   const [commentText, setCommentText] = useState("");
   const [commentLoading, setCommentLoading] = useState(false);
   const [commentError, setCommentError] = useState("");
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingText, setEditingText] = useState("");
+  const [deleteCandidateId, setDeleteCandidateId] = useState(null);
   const menuRef = useRef(null);
   const currentUser = useMemo(() => {
     try {
@@ -47,11 +49,30 @@ function Watch() {
     }
   }, []);
   const authToken = useMemo(() => localStorage.getItem("token") || "", []);
-  const authHeaders = useMemo(() => ({
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-    },
-  }), [authToken]);
+  const authHeaders = useMemo(
+    () => ({
+      headers: { Authorization: `Bearer ${authToken}` },
+    }),
+    [authToken]
+  );
+
+  const getCurrentUserId = () => currentUser?._id || currentUser?.id || currentUser?.userId || null;
+  const isCommentLikedByUser = (comment) => {
+    const userId = getCurrentUserId();
+    if (!userId) return false;
+    return [
+      ...(comment?.likedby || []),
+      ...(comment?.likedBy || []),
+    ].some((item) => String(item?._id || item?.id || item) === String(userId));
+  };
+  const isCommentDislikedByUser = (comment) => {
+    const userId = getCurrentUserId();
+    if (!userId) return false;
+    return [
+      ...(comment?.dislikedby || []),
+      ...(comment?.dislikedBy || []),
+    ].some((item) => String(item?._id || item?.id || item) === String(userId));
+  };
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -87,7 +108,8 @@ function Watch() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      // close menu when clicking outside any element marked with data-comment-menu
+      if (!event.target.closest("[data-comment-menu]")) {
         setActiveMenuId(null);
       }
     };
@@ -101,6 +123,10 @@ function Watch() {
 
   const handleAddComment = async () => {
     if (!commentText.trim() || !activeVideoId) return;
+    if (!currentUser) {
+      setShowSignInPrompt(true);
+      return;
+    }
 
     try {
       setCommentLoading(true);
@@ -120,6 +146,11 @@ function Watch() {
   };
 
   const handleDeleteComment = async (commentId) => {
+    if (!currentUser) {
+      setShowSignInPrompt(true);
+      return;
+    }
+
     try {
       await axios.delete(`http://localhost:5000/api/comments/${commentId}`, authHeaders);
       const response = await axios.get(`http://localhost:5000/api/comments/video/${activeVideoId}/`);
@@ -132,6 +163,10 @@ function Watch() {
 
   const handleEditComment = async (commentId) => {
     if (!editingText.trim()) return;
+    if (!currentUser) {
+      setShowSignInPrompt(true);
+      return;
+    }
 
     try {
       await axios.put(`http://localhost:5000/api/comments/${commentId}`, {
@@ -147,6 +182,57 @@ function Watch() {
     }
   };
 
+  const handleLikeComment = async (commentId) => {
+    if (!currentUser) {
+      setShowSignInPrompt(true);
+      return;
+    }
+
+    try {
+      await axios.post(`http://localhost:5000/api/comments/${commentId}/like`, {}, authHeaders);
+      const response = await axios.get(`http://localhost:5000/api/comments/video/${activeVideoId}/`);
+      setComments(response.data?.comments || []);
+    } catch (err) {
+      // ignore errors for now
+    }
+  };
+
+  const handleDislikeComment = async (commentId) => {
+    if (!currentUser) {
+      setShowSignInPrompt(true);
+      return;
+    }
+
+    try {
+      await axios.post(`http://localhost:5000/api/comments/${commentId}/dislike`, {}, authHeaders);
+      const response = await axios.get(`http://localhost:5000/api/comments/video/${activeVideoId}/`);
+      setComments(response.data?.comments || []);
+    } catch (err) {
+      // ignore errors for now
+    }
+  };
+
+  const handleReplyTo = (username) => {
+    if (!currentUser) {
+      setShowSignInPrompt(true);
+      return;
+    }
+    setCommentText((t) => `${t ? t + " " : ""}@${username} `);
+  };
+
+  const handleReportComment = async (commentId) => {
+    if (!currentUser) {
+      setShowSignInPrompt(true);
+      return;
+    }
+
+    try {
+      await axios.post(`http://localhost:5000/api/comments/${commentId}/report`, {}, authHeaders);
+    } catch (err) {
+      // ignore
+    }
+  };
+
   if (loading) return <p className="text-[#606060]">Loading video...</p>;
   if (error || !video) return <p className="text-red-500">{error || "Video not found"}</p>;
 
@@ -154,7 +240,7 @@ function Watch() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_340px]">
       <div className="space-y-4">
         <div className="overflow-hidden rounded-xl bg-black">
-          <video controls className="aspect-video w-full" src={video.videoUrl} />
+          <video controls autoPlay className="aspect-video w-full" src={video.videoUrl} />
         </div>
 
         <div className="space-y-3">
@@ -204,9 +290,10 @@ function Watch() {
             <p className="text-sm text-[#606060]">{comments.length} comments</p>
           </div>
 
-          <div className="flex items-start gap-3 rounded-xl border border-[#e5e5e5] p-3">
-            <FaCircleUser className="mt-1 h-9 w-9 text-[#606060]" />
-            <div className="flex-1">
+          <div className="relative">
+            <div className="flex items-start gap-3 rounded-xl p-3">
+              <FaCircleUser className="mt-1 h-9 w-9 text-[#606060]" />
+              <div className="flex-1">
               <textarea
                 rows="3"
                 value={commentText}
@@ -226,20 +313,33 @@ function Watch() {
                 </button>
               </div>
             </div>
+            </div>
+
+            {showSignInPrompt && (
+              <div className="absolute left-4 top-[-90px] z-20 w-72 rounded-xl bg-white p-4 shadow-lg">
+                <h3 className="text-md font-semibold">Want to join the conversation?</h3>
+                <p className="text-sm text-[#606060] mt-1">Sign in to continue</p>
+                <div className="mt-3 text-center">
+                  <a href="/login" onClick={() => setShowSignInPrompt(false)} className="inline-block rounded-full bg-black px-6 py-2 text-sm font-medium text-white">Sign in</a>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
             {comments.length === 0 ? (
-              <div className="rounded-xl border border-[#e5e5e5] p-4 text-sm text-[#606060]">
+              <div className="rounded-xl p-4 text-sm text-[#606060]">
                 No comments yet. Be the first to comment.
               </div>
             ) : (
               comments.map((comment) => {
-                const isOwner = currentUser?._id && comment.user?._id === currentUser._id;
+                const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId || null;
+                const commentUserId = comment.user?._id || comment.user?.id || null;
+                const isOwner = currentUserId && String(commentUserId) === String(currentUserId);
                 const isEditing = editingCommentId === comment._id;
 
                 return (
-                  <div key={comment._id} className="rounded-xl border border-[#e5e5e5] p-3">
+                  <div key={comment._id} className="rounded-xl p-3 bg-white">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3">
                         <img
@@ -281,46 +381,87 @@ function Watch() {
                               </div>
                             </div>
                           ) : (
-                            <p className="mt-1 text-sm text-[#0f0f0f]">{comment.text}</p>
+                            <>
+                              <p className="mt-1 text-sm text-[#0f0f0f]">{comment.text}</p>
+
+                              <div className="mt-2 flex items-center gap-4 text-sm">
+                                <button
+                                  type="button"
+                                  onClick={() => handleLikeComment(comment._id)}
+                                  className={`flex items-center gap-2 ${isCommentLikedByUser(comment) ? "text-blue-600" : "text-[#606060]"}`}
+                                >
+                                  <HiHandThumbUp className={`h-4 w-4 ${isCommentLikedByUser(comment) ? "text-blue-600" : "text-current"}`} />
+                                  <span>{comment.likes || 0}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDislikeComment(comment._id)}
+                                  className={`flex items-center gap-2 ${isCommentDislikedByUser(comment) ? "text-red-600" : "text-[#606060]"}`}
+                                >
+                                  <HiHandThumbUp className={`h-4 w-4 rotate-180 ${isCommentDislikedByUser(comment) ? "text-red-600" : "text-current"}`} />
+                                  <span>{comment.dislikes || 0}</span>
+                                </button>
+                                <button type="button" onClick={() => handleReplyTo(comment.user?.username)} className="text-sm text-[#606060]">Reply</button>
+                              </div>
+                            </>
                           )}
                         </div>
                       </div>
 
-                      {isOwner && (
-                        <div className="relative" ref={menuRef}>
-                          <button
-                            type="button"
-                            onClick={() => setActiveMenuId(activeMenuId === comment._id ? null : comment._id)}
-                            className="rounded-full p-1 hover:bg-[#f2f2f2]"
-                            aria-label="Comment options"
-                          >
-                            <HiEllipsisVertical className="h-4 w-4 text-[#606060]" />
-                          </button>
+                      <div className="relative" ref={menuRef} data-comment-menu>
+                        <button
+                          type="button"
+                          onClick={() => setActiveMenuId(activeMenuId === comment._id ? null : comment._id)}
+                          className="rounded-full p-1 hover:bg-[#f2f2f2]"
+                          aria-label="Comment options"
+                        >
+                          <HiEllipsisVertical className="h-4 w-4 text-[#606060]" />
+                        </button>
 
-                          {activeMenuId === comment._id && (
-                            <div className="absolute right-0 top-8 z-10 w-28 rounded-lg border border-[#e5e5e5] bg-white p-1 shadow-md">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingCommentId(comment._id);
-                                  setEditingText(comment.text);
-                                  setActiveMenuId(null);
-                                }}
-                                className="block w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[#f2f2f2]"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteComment(comment._id)}
-                                className="block w-full rounded-md px-2 py-1.5 text-left text-sm text-red-500 hover:bg-[#f2f2f2]"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                        {activeMenuId === comment._id && (
+                          <div className="absolute right-0 top-8 z-10 w-40 rounded-lg border border-[#e5e5e5] bg-white p-1 shadow-md">
+                            {isOwner ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingCommentId(comment._id);
+                                    setEditingText(comment.text);
+                                    setActiveMenuId(null);
+                                  }}
+                                  className="flex items-center gap-2 block w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[#f2f2f2]"
+                                >
+                                  <HiPencil className="h-4 w-4" /> Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteCandidateId(comment._id)}
+                                  className="flex items-center gap-2 block w-full rounded-md px-2 py-1.5 text-left text-sm text-red-500 hover:bg-[#f2f2f2]"
+                                >
+                                  <HiTrash className="h-4 w-4" /> Delete
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (!currentUser) {
+                                      setShowSignInPrompt(true);
+                                    } else {
+                                      handleReportComment(comment._id);
+                                      setActiveMenuId(null);
+                                    }
+                                  }}
+                                  className="flex items-center gap-2 block w-full rounded-md px-2 py-1.5 text-left text-sm hover:bg-[#f2f2f2]"
+                                >
+                                  <HiFlag className="h-4 w-4" /> Report
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -329,6 +470,29 @@ function Watch() {
           </div>
         </div>
       </div>
+
+        {deleteCandidateId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setDeleteCandidateId(null)} />
+            <div className="relative z-10 w-full max-w-sm rounded-lg bg-white p-4 shadow-lg">
+              <h3 className="text-lg font-semibold">Delete comment</h3>
+              <p className="mt-2 text-sm text-[#606060]">Are you sure you want to delete this comment? This action cannot be undone.</p>
+              <div className="mt-4 flex justify-end gap-2">
+                <button type="button" onClick={() => setDeleteCandidateId(null)} className="rounded-md border px-3 py-1.5">Cancel</button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await handleDeleteComment(deleteCandidateId);
+                    setDeleteCandidateId(null);
+                  }}
+                  className="rounded-md bg-red-600 px-3 py-1.5 text-white"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       <aside className="space-y-3">
         {relatedVideos.length > 0 ? (
