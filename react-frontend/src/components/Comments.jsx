@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import axios from "axios";
 import {
   HiEllipsisVertical,
   HiHandThumbUp,
@@ -10,6 +9,7 @@ import {
 import { FaCircleUser } from "react-icons/fa6";
 import { useAuth } from "../hooks/useAuth";
 import { formatRelativeTime } from "../utils/videoHelpers";
+import api from "../api/axios";
 
 function Comments({ videoId }) {
   // auth fields
@@ -53,8 +53,8 @@ function Comments({ videoId }) {
 
       try {
         // api call to fetch comments for the given video
-        const response = await axios.get(
-          `http://localhost:5000/api/comments/video/${videoId}/`,
+        const response = await api.get(
+          `/comments/video/${videoId}/`,
         );
         setComments(response.data?.comments || []);
       } catch (err) {
@@ -80,8 +80,8 @@ function Comments({ videoId }) {
 
   // refreshes the comments list by fetching the latest comments from the server
   const refreshComments = async () => {
-    const response = await axios.get(
-      `http://localhost:5000/api/comments/video/${videoId}/`,
+    const response = await api.get(
+      `/comments/video/${videoId}/`,
     );
     setComments(response.data?.comments || []);
   };
@@ -97,8 +97,8 @@ function Comments({ videoId }) {
     try {
       setCommentLoading(true);
       setCommentError("");
-      await axios.post(
-        "http://localhost:5000/api/comments",
+      await api.post(
+        "/comments",
         {
           video: videoId,
           text: commentText.trim(),
@@ -122,8 +122,8 @@ function Comments({ videoId }) {
     }
 
     try {
-      await axios.delete(
-        `http://localhost:5000/api/comments/${commentId}`,
+      await api.delete(
+        `/comments/${commentId}`,
         authHeaders,
       );
       await refreshComments();
@@ -144,8 +144,8 @@ function Comments({ videoId }) {
     }
 
     try {
-      await axios.put(
-        `http://localhost:5000/api/comments/${commentId}`,
+      await api.put(
+        `/comments/${commentId}`,
         {
           text: editingText.trim(),
         },
@@ -170,8 +170,8 @@ function Comments({ videoId }) {
     }
 
     try {
-      await axios.post(
-        `http://localhost:5000/api/comments/${commentId}/like`,
+      await api.post(
+        `/comments/${commentId}/like`,
         {},
         authHeaders,
       );
@@ -189,8 +189,8 @@ function Comments({ videoId }) {
     }
 
     try {
-      await axios.post(
-        `http://localhost:5000/api/comments/${commentId}/dislike`,
+      await api.post(
+        `/comments/${commentId}/dislike`,
         {},
         authHeaders,
       );
@@ -215,8 +215,8 @@ function Comments({ videoId }) {
     }
 
     try {
-      await axios.post(
-        `http://localhost:5000/api/comments/${commentId}/report`,
+      await api.post(
+        `/comments/${commentId}/report`,
         {},
         authHeaders,
       );

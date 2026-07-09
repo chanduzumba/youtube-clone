@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 import toast from "react-hot-toast";
 
 const defaultLogo = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
@@ -31,7 +31,7 @@ function CreateChannel() {
 
       try {
         // Fetches the current user's channel data from the backend
-        const response = await axios.get("http://localhost:5000/api/channel/me", {
+        const response = await api.get("/channel/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const existingChannel = response.data?.channel;
@@ -90,8 +90,8 @@ function CreateChannel() {
 
       // If a channel already exists, it updates the channel; otherwise, it creates a new channel
       const response = channel
-        ? await axios.put(`http://localhost:5000/api/channel/${channel._id}`, payload, { headers })
-        : await axios.post("http://localhost:5000/api/channel", payload, { headers });
+        ? await api.put(`/channel/${channel._id}`, payload, { headers })
+        : await api.post("/channel", payload, { headers });
 
       toast.success(`Channel ${channel ? "updated" : "created"} successfully.`);
       navigate(`/channel/${response.data.channel._id}`);

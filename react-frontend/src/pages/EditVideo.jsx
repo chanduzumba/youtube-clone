@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 
 //categories default values
 const categories = [
@@ -41,7 +41,7 @@ function EditVideo() {
       try {
         // fetch video details from backend using video id
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/videos/${id}`);
+        const response = await api.get(`/videos/${id}`);
         const existingVideo = response.data?.video;
         if (existingVideo) {
           setVideo(existingVideo);
@@ -83,8 +83,8 @@ function EditVideo() {
       setSaving(true);
       setError("");
       // Sends a PUT request to update the video details on the backend
-      const response = await axios.put(
-        `http://localhost:5000/api/videos/${id}`,
+      const response = await api.put(
+        `/videos/${id}`,
         {
           title: form.title,
           description: form.description,
@@ -118,7 +118,7 @@ function EditVideo() {
 
     try {
       // Delete api call to backend 
-      await axios.delete(`http://localhost:5000/api/videos/${id}`, {
+      await api.delete(`/videos/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       navigate("/profile");

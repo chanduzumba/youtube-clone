@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import toast from "react-hot-toast";
+import api from "../api/axios";
 
 function Register() {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ function Register() {
       setLoading(true);
       setServerError("");
       //auth regiter api call to register new user
-      await axios.post("http://localhost:5000/api/auth/register", {
+      await api.post("/auth/register", {
         username: form.username,
         email: form.email,
         password: form.password,

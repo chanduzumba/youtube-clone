@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi2";
-import axios from "axios";
+import api from "../api/axios";
 import VideoCard from "../components/VideoCard";
 
 const categories = [
@@ -58,7 +58,7 @@ const Home = () => {
           params.category = selectedCategory;
         }
         // Fetches videos from the backend based on search query and selected category
-        const response = await axios.get("http://localhost:5000/api/videos", { params });
+        const response = await api.get("/videos", { params });
         setVideos(response.data?.videos || []);
         setError("");
       } catch (err) {

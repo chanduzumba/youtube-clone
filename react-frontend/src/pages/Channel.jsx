@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import { HiCheckCircle, HiPencilSquare, HiPlus, HiMagnifyingGlass, HiOutlineTrash } from "react-icons/hi2";
 import VideoCard from "../components/VideoCard.jsx";
+import api from "../api/axios.js";
 
 const tabs = ["Videos", "Posts"];
 
@@ -38,7 +38,6 @@ function Channel() {
   // Determine if the current user is the owner of the channel
   const isOwner = !!channel && !!currentUserId && channel.owner?._id === currentUserId;
   // BASE URL for API requests
-  const BASE = 'http://localhost:5000';
 
   useEffect(() => {
     // Fetches channel details based on the provided ID
@@ -46,7 +45,7 @@ function Channel() {
       try {
         setLoading(true);
         setError("");
-        const response = await axios.get(`${BASE}/api/channel/${id}`);
+        const response = await api.get(`/channel/${id}`);
         setChannel(response.data?.channel || null);
       } catch (err) {
         setError(err.response?.data?.message || "Unable to load channel.");
@@ -65,7 +64,7 @@ function Channel() {
         const params = { channel: id };
         if (search.trim()) params.search = search.trim();
 
-        const response = await axios.get(`${BASE}/api/videos`, {
+        const response = await api.get("/videos", {
           params,
         });
         setVideos(response.data?.videos || []);
@@ -81,7 +80,7 @@ function Channel() {
   const handleDeleteChannel = async () => {
     if (!window.confirm("Delete this channel and all of its videos?")) return;
     try {
-      await axios.delete(`${BASE}/api/channel/${id}`, {
+      await api.delete(`/channel/${id}`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       navigate("/profile");
@@ -101,7 +100,7 @@ function Channel() {
     setDeleteLoading(true);
     setError("");
     try {
-      await axios.delete(`http://localhost:5000/api/videos/${deleteCandidateId}`, {
+      await api.delete(`/videos/${deleteCandidateId}`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       setVideos((prev) => prev.filter((video) => video._id !== deleteCandidateId));

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   HiUserCircle,
   HiPlus,
@@ -11,6 +10,7 @@ import {
   HiTrash,
 } from "react-icons/hi2";
 import { formatRelativeTime } from "../utils/videoHelpers";
+import api from "../api/axios";
 
 const defaultBanner = "https://via.placeholder.com/1400x350?text=Channel+Banner";
 const defaultLogo = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
@@ -153,8 +153,8 @@ function Profile() {
         setError("");
         // make api calls to get channel info and videos of channel
         const [channelResponse, videosResponse] = await Promise.all([
-          axios.get("http://localhost:5000/api/channel/me", authHeaders),
-          axios.get("http://localhost:5000/api/videos/my/videos", authHeaders),
+          api.get("/channel/me", authHeaders),
+          api.get("/videos/my/videos", authHeaders),
         ]);
 
         setChannel(channelResponse.data?.channel || null);
@@ -176,7 +176,7 @@ function Profile() {
   const handleDeleteVideo = async (videoId) => {
     const token = localStorage.getItem("token");
     try {
-      await axios.delete(`http://localhost:5000/api/videos/${videoId}`, {
+      await axios.delete(`/videos/${videoId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setVideos((prev) => prev.filter((v) => v._id !== videoId));

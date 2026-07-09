@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
 
 const categories = [
   "Music",
@@ -50,8 +50,8 @@ function UploadVideo() {
       setSaving(true);
       setError("");
       //api call to post video data
-      const response = await axios.post(
-        "http://localhost:5000/api/videos",
+      const response = await api.post(
+        "/videos",
         {
           title: form.title,
           description: form.description,

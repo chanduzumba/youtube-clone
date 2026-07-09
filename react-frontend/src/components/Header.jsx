@@ -177,7 +177,6 @@ export default function Header() {
               >
                 <img
                   src={
-                    user.avatar ||
                     "https://ui-avatars.com/api/?name=" + user.username
                   }
                   alt={user.username}

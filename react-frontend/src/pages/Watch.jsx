@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import { HiEllipsisVertical, HiHandThumbUp, HiShare } from "react-icons/hi2";
 import { useAuth } from "../hooks/useAuth";
 import {
@@ -9,6 +8,7 @@ import {
   formatRelativeTime,
 } from "../utils/videoHelpers";
 import Comments from "../components/Comments";
+import api from "../api/axios";
 
 function Watch() {
   // state and hooks for managing video data, related videos, and user interactions
@@ -25,9 +25,7 @@ function Watch() {
     const fetchVideo = async () => {
       try {
         // api call to fetch video by id
-        const response = await axios.get(
-          `http://localhost:5000/api/videos/${id}`,
-        );
+        const response = await api.get(`/videos/${id}`);
         setVideo(response.data?.video || null);
         // implementation in future
         setRelatedVideos(response.data?.relatedVideos || []);
@@ -61,16 +59,19 @@ function Watch() {
 
     try {
       // patch http request to toggle like on a video
-      await axios.patch(
-        `http://localhost:5000/api/videos/${videoId}/like`,
+      const response = await api.patch(
+        `/videos/${videoId}/like`,
         {},
         authHeaders,
       );
-      //get video after changing updation
-      const response = await axios.get(
-        `http://localhost:5000/api/videos/${videoId}`,
-      );
-      setVideo(response.data?.video || null);
+      //set video after changing updation
+      setVideo((prev) => ({
+        ...prev,
+        likes: response?.data?.likes,
+        dislikes: response?.data?.dislikes,
+        likedBy: response?.data?.likedBy,
+        dislikedBy: response?.data?.dislikedBy,
+      }));
     } catch (err) {
       // ignore errors for now
     }
@@ -85,15 +86,14 @@ function Watch() {
 
     try {
       // patch dislike api call
-      await axios.patch(
-        `http://localhost:5000/api/videos/${videoId}/dislike`,
-        {},
-        authHeaders,
-      );
-      const response = await axios.get(
-        `http://localhost:5000/api/videos/${videoId}`,
-      );
-      setVideo(response.data?.video || null);
+      const response = await api.patch(`/videos/${videoId}/dislike`, {}, authHeaders);
+      setVideo((prev) => ({
+        ...prev,
+        likes: response?.data?.likes,
+        dislikes: response?.data?.dislikes,
+        likedBy: response?.data?.likedBy,
+        dislikedBy: response?.data?.dislikedBy,
+      }));
     } catch (err) {
       // ignore errors for now
     }
@@ -101,21 +101,15 @@ function Watch() {
 
   //video like check
   const isVideoLikedByUser = (video) => {
-    const userId = getCurrentUserId();
-    if (!userId) return false;
-    return [...(video?.likedBy || []), ...(video?.likedby || [])].some(
-      (item) => String(item?._id || item?.id || item) === String(userId),
-    );
-  };
+  const userId = String(getCurrentUserId());
+  return (video?.likedBy || []).includes(userId);
+};
 
-  //video dislike check
-  const isVideoDislikedByUser = (video) => {
-    const userId = getCurrentUserId();
-    if (!userId) return false;
-    return [...(video?.dislikedBy || []), ...(video?.dislikedby || [])].some(
-      (item) => String(item?._id || item?.id || item) === String(userId),
-    );
-  };
+//video dislike check
+const isVideoDislikedByUser = (video) => {
+  const userId = String(getCurrentUserId());
+  return (video?.dislikedBy || []).includes(userId);
+};
 
   if (loading) return <p className="text-[#606060]">Loading video...</p>;
   if (error || !video)
