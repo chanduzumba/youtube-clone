@@ -1,4 +1,4 @@
-# ⚛️ YouTube Clone Frontend
+# YouTube Clone Frontend
 
 React frontend for the YouTube Clone.
 
@@ -59,16 +59,10 @@ src/
 
 ---
 
-## Build
+## Run
 
 ```bash
-npm run build
+npm run dev
 ```
 
 ---
-
-## Preview
-
-```bash
-npm run preview
-```
