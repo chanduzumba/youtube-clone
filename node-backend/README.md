@@ -130,6 +130,7 @@ dns.setServers(["8.8.8.8", "8.8.4.4"]);
 ```
 
 ### User relationship with other entities in the system is as follows:
+```
 User (1)
    │
    └──────────────┐
@@ -143,8 +144,10 @@ User (1)
                                 └──────────────┐
                                                │
                                           Comment (Many)
+```
 
 ### Video relationship with other entities in the system is as follows:
+```
 User
  └── uploads
       │
@@ -156,8 +159,10 @@ Video
 
 Channel
  └── has many Videos
+ ```
 
 ### Comment relationship with other entities in the system is as follows:
+```
 Comment
  ├── video → Video
  └── user → User
@@ -175,3 +180,4 @@ Video
  │ belongs to
  ▼
 Channel
+```
