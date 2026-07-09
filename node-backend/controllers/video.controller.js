@@ -334,6 +334,8 @@ export const toggleLike = async (req, res) => {
       dislikes: video.dislikedBy.length,
       liked: !liked,
       disliked: false,
+      likedBy: video.likedBy,
+      dislikedBy: video.dislikedBy,
     });
   } catch (error) {
     res.status(500).json({
@@ -401,6 +403,8 @@ export const toggleDislike = async (req, res) => {
       dislikes: video.dislikedBy.length,
       liked: false,
       disliked: !disliked,
+      likedBy: video.likedBy,
+      dislikedBy: video.dislikedBy,
     });
   } catch (error) {
     res.status(500).json({
