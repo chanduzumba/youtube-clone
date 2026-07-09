@@ -1,10 +1,10 @@
-# 🎬 YouTube Clone (MERN Stack)
+#  YouTube Clone (MERN Stack)
 
 A full-stack YouTube Clone built using the MERN stack that replicates the core functionality of YouTube, including authentication, video uploads, channels, comments, likes/dislikes, subscriptions, search, and responsive UI.
 
 ---
 
-## 🚀 Features
+##  Features
 
 - User Authentication
 - JWT Authorization
@@ -21,7 +21,7 @@ A full-stack YouTube Clone built using the MERN stack that replicates the core f
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 ### Frontend
 
@@ -42,7 +42,7 @@ A full-stack YouTube Clone built using the MERN stack that replicates the core f
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 youtube-clone/

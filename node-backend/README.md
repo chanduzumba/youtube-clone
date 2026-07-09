@@ -1,4 +1,4 @@
-# 🚀 YouTube Clone Backend
+#  YouTube Clone Backend
 
 REST API for the YouTube Clone built using Node.js, Express.js, and MongoDB.
 
@@ -127,6 +127,7 @@ PATCH /api/comments/:id/dislike
 ```javascript
 const dns = require('dns');
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
+```
 
 ### User relationship with other entities in the system is as follows:
 User (1)
