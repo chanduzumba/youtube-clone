@@ -7,8 +7,10 @@ import VideoCard from "../components/VideoCard.jsx";
 const tabs = ["Videos", "Posts"];
 
 function Channel() {
+  // Retrieves the channel ID from the URL parameters
   const { id } = useParams();
   const navigate = useNavigate();
+  // State variables to manage channel data, videos, loading state, errors, active tab, search query, user info, and video deletion
   const [channel, setChannel] = useState(null);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +21,7 @@ function Channel() {
   const [deleteCandidateId, setDeleteCandidateId] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Load logged-in user details from localStorage when the component mounts
   const authToken = useMemo(() => localStorage.getItem("token") || "", []);
   const currentUser = useMemo(() => {
     const stored = localStorage.getItem("user");
@@ -30,15 +33,20 @@ function Channel() {
     }
   }, []);
 
+  // Determine if the current user is the owner of the channel
   const currentUserId = currentUser?._id || currentUser?.id || currentUser?.userId || currentUser?.userID;
+  // Determine if the current user is the owner of the channel
   const isOwner = !!channel && !!currentUserId && channel.owner?._id === currentUserId;
+  // BASE URL for API requests
+  const BASE = 'http://localhost:5000';
 
   useEffect(() => {
+    // Fetches channel details based on the provided ID
     const fetchChannel = async () => {
       try {
         setLoading(true);
         setError("");
-        const response = await axios.get(`http://localhost:5000/api/channel/${id}`);
+        const response = await axios.get(`${BASE}/api/channel/${id}`);
         setChannel(response.data?.channel || null);
       } catch (err) {
         setError(err.response?.data?.message || "Unable to load channel.");
@@ -51,12 +59,13 @@ function Channel() {
   }, [id]);
 
   useEffect(() => {
+    // Fetches videos associated with the channel, optionally filtered by search query
     const fetchChannelVideos = async () => {
       try {
         const params = { channel: id };
         if (search.trim()) params.search = search.trim();
 
-        const response = await axios.get("http://localhost:5000/api/videos", {
+        const response = await axios.get(`${BASE}/api/videos`, {
           params,
         });
         setVideos(response.data?.videos || []);
@@ -68,10 +77,11 @@ function Channel() {
     fetchChannelVideos();
   }, [id, search]);
 
+  // Handles the deletion of the channel and all its associated videos
   const handleDeleteChannel = async () => {
     if (!window.confirm("Delete this channel and all of its videos?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/channel/${id}`, {
+      await axios.delete(`${BASE}/api/channel/${id}`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
       navigate("/profile");
@@ -80,10 +90,12 @@ function Channel() {
     }
   };
 
+  // Handles the deletion of a video by setting it as a candidate for deletion
   const handleDeleteVideo = async (videoId) => {
     setDeleteCandidateId(videoId);
   };
 
+  //delete video confirmation modal handlers
   const confirmDeleteVideo = async () => {
     if (!deleteCandidateId) return;
     setDeleteLoading(true);
@@ -113,6 +125,7 @@ function Channel() {
     return <p className="text-red-500">{error}</p>;
   }
 
+  //channel not found
   if (!channel) {
     return (
       <div className="rounded-[2rem] border border-[#e5e5e5] bg-white p-8 text-center shadow-sm">
@@ -131,6 +144,7 @@ function Channel() {
 
   return (
     <div className="space-y-6 pt-4">
+       {/* Channel logo and banner section */}
       <div className="overflow-hidden rounded-[2rem] bg-white shadow-sm">
         <div className="relative">
           <img
@@ -196,7 +210,7 @@ function Channel() {
           </div>
         </div>
       </div>
-
+      {/* Channel videos and posts section */}
       <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
         <div className="space-y-6">
           <div className="rounded-[2rem] border border-[#e5e5e5] bg-white p-6 shadow-sm">
@@ -272,7 +286,7 @@ function Channel() {
             )}
           </div>
         </div>
-
+       { /*  Owner / Channel details */ }
         <aside className="space-y-6">
           <div className="rounded-[2rem] border border-[#e5e5e5] bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-[#0f172a]">Channel details</h3>
@@ -291,7 +305,7 @@ function Channel() {
               </div>
             </div>
           </div>
-
+            {/* Manage channel */}
           <div className="rounded-[2rem] border border-[#e5e5e5] bg-white p-6 shadow-sm">
             <h3 className="text-lg font-semibold text-[#0f172a]">Channel actions</h3>
             <div className="mt-5 space-y-3 text-sm text-[#475569]">
@@ -314,6 +328,7 @@ function Channel() {
           </div>
         </aside>
       </div>
+      {/* Delete confirmation modal for videos */}
       {deleteCandidateId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 py-8">
           <div className="w-full max-w-md rounded-[2rem] bg-white p-6 shadow-xl">

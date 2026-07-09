@@ -14,17 +14,17 @@ const Channel = lazy(() => import("../pages/Channel.jsx"));
 const Profile = lazy(() => import("../pages/Profile.jsx"));
 const UploadVideo = lazy(() => import("../pages/UploadVideo.jsx"));
 const EditVideo = lazy(() => import("../pages/EditVideo.jsx"));
-const Search = lazy(() => import("../pages/Search.jsx"));
-const History = lazy(() => import("../pages/History.jsx"));
 const CreateChannel = lazy(() => import("../pages/CreateChannel.jsx"));
 const NotFound = lazy(() => import("../pages/NotFound.jsx"));
 
+// A higher-order component that wraps a given component with Suspense for lazy loading
 const withSuspense = (Component) => (
   <Suspense fallback={<PageLoader />}>
     <Component />
   </Suspense>
 );
 
+// route paths definition
 const router = createBrowserRouter([
   {
     element: <AuthLayout />,
@@ -70,14 +70,6 @@ const router = createBrowserRouter([
       {
         path: "/edit-video/:id",
         element: withSuspense(EditVideo),
-      },
-      {
-        path: "/search",
-        element: withSuspense(Search),
-      },
-      {
-        path: "/history",
-        element: withSuspense(History),
       },
     ],
   },

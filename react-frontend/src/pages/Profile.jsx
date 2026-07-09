@@ -1,21 +1,131 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { HiUserCircle, HiPlus, HiArrowRight, HiPencilSquare } from "react-icons/hi2";
-import VideoCard from "../components/VideoCard.jsx";
+import {
+  HiUserCircle,
+  HiPlus,
+  HiPencilSquare,
+  HiMagnifyingGlass,
+  HiEllipsisVertical,
+  HiPencil,
+  HiTrash,
+} from "react-icons/hi2";
+import { formatRelativeTime } from "../utils/videoHelpers";
 
 const defaultBanner = "https://via.placeholder.com/1400x350?text=Channel+Banner";
 const defaultLogo = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
+const formatDuration = (seconds) => {
+  if (seconds === null || seconds === undefined || Number.isNaN(seconds)) return null;
+  const total = Math.floor(seconds);
+  const mins = Math.floor(total / 60);
+  const secs = total % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+};
+
+const formatViews = (views) => {
+  const count = Number(views) || 0;
+  if (count === 0) return "No views";
+  return `${count.toLocaleString()} view${count === 1 ? "" : "s"}`;
+};
+
+// A single video tile in the channel's "Videos" grid, styled after the
+// real YouTube channel page: thumbnail + duration badge, title, meta line,
+// and a kebab menu for owner actions (edit/delete).
+function ChannelVideoCard({ video, isOwner, onEdit, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
+
+  const duration = formatDuration(video.duration);
+
+  return (
+    <div className="group">
+      <Link to={`/watch/${video._id}`} className="relative block overflow-hidden rounded-xl bg-black">
+        <img
+          src={video.thumbnailUrl}
+          alt={video.title}
+          className="aspect-video w-full object-cover transition group-hover:opacity-90"
+        />
+        {duration && (
+          <span className="absolute bottom-1.5 right-1.5 rounded bg-black/80 px-1.5 py-0.5 text-xs font-medium text-white">
+            {duration}
+          </span>
+        )}
+      </Link>
+
+      <div className="mt-2 flex items-start justify-between gap-2">
+        <Link to={`/watch/${video._id}`} className="min-w-0">
+          <p className="line-clamp-2 text-sm font-medium text-[#0f0f0f]">{video.title}</p>
+          <p className="mt-1 text-sm text-[#606060]">
+            {formatViews(video.views)} • {formatRelativeTime(video.createdAt)}
+          </p>
+        </Link>
+
+        {isOwner && (
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((open) => !open)}
+              className="rounded-full p-1 text-[#606060] hover:bg-[#f2f2f2]"
+              aria-label="Video options"
+            >
+              <HiEllipsisVertical className="h-5 w-5" />
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-8 z-10 w-36 rounded-lg border border-[#e5e5e5] bg-white p-1 shadow-md">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onEdit?.(video._id);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-[#f2f2f2]"
+                >
+                  <HiPencil className="h-4 w-4" /> Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onDelete?.(video._id);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-red-500 hover:bg-[#f2f2f2]"
+                >
+                  <HiTrash className="h-4 w-4" /> Delete
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Profile() {
   const navigate = useNavigate();
+  // State variables to manage user data, channel data, videos, loading state, and error messages
   const [user, setUser] = useState(null);
   const [channel, setChannel] = useState(null);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("videos");
 
   useEffect(() => {
+    // collect user info from LS
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
@@ -41,7 +151,7 @@ function Profile() {
       try {
         setLoading(true);
         setError("");
-
+        // make api calls to get channel info and videos of channel
         const [channelResponse, videosResponse] = await Promise.all([
           axios.get("http://localhost:5000/api/channel/me", authHeaders),
           axios.get("http://localhost:5000/api/videos/my/videos", authHeaders),
@@ -63,10 +173,23 @@ function Profile() {
     fetchProfileData();
   }, [user]);
 
+  const handleDeleteVideo = async (videoId) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(`http://localhost:5000/api/videos/${videoId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setVideos((prev) => prev.filter((v) => v._id !== videoId));
+    } catch (err) {
+      setError(err.response?.data?.message || "Unable to delete video.");
+    }
+  };
+
   if (loading) {
     return <p className="text-[#606060]">Loading profile...</p>;
   }
 
+  //if user not signedin 
   if (!user) {
     return (
       <div className="pt-20">
@@ -98,6 +221,7 @@ function Profile() {
     );
   }
 
+  //profile page view /channel details
   return (
     <div className="space-y-6 pt-20">
       {error && <p className="text-red-500">{error}</p>}
@@ -149,36 +273,7 @@ function Profile() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
-        <div className="rounded-[2rem] border border-[#e5e5e5] bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <img
-              src={user.avatar || defaultLogo}
-              alt={user.username}
-              className="h-16 w-16 rounded-full object-cover"
-            />
-            <div>
-              <p className="text-lg font-semibold text-[#0f0f0f]">{user.username}</p>
-              <p className="text-sm text-[#606060]">{user.email}</p>
-            </div>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            <div>
-              <p className="text-sm text-[#606060]">Channel status</p>
-              <p className="mt-1 text-sm font-medium text-[#0f0f0f]">
-                {channel ? "Channel created" : "Guest channel"}
-              </p>
-            </div>
-            {channel && (
-              <div>
-                <p className="text-sm text-[#606060]">Subscribers</p>
-                <p className="mt-1 text-sm font-medium text-[#0f0f0f]">{channel.subscribersCount || 0}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
+      <div className="grid gap-6">
         <div className="space-y-6">
           {!channel ? (
             <div className="rounded-[2rem] border border-[#e5e5e5] bg-white p-6 text-center shadow-sm">
@@ -200,35 +295,58 @@ function Profile() {
             </div>
           ) : null}
 
-          <div className="rounded-[2rem] border border-[#e5e5e5] bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm text-[#606060]">Your videos</p>
-                <p className="text-xl font-semibold text-[#0f0f0f]">{videos.length}</p>
-              </div>
-              <Link
-                to="/upload"
-                className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white hover:bg-[#111]"
+          {/* Videos section - styled like the channel page's Videos/Posts tabs */}
+          <div>
+            <div className="flex items-center gap-8 border-b border-[#e5e5e5]">
+              <button
+                type="button"
+                onClick={() => setActiveTab("videos")}
+                className={`-mb-px border-b-2 pb-3 text-sm font-medium ${
+                  activeTab === "videos"
+                    ? "border-[#0f0f0f] text-[#0f0f0f]"
+                    : "border-transparent text-[#606060] hover:text-[#0f0f0f]"
+                }`}
               >
-                Upload
-              </Link>
+                Videos
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("posts")}
+                className={`-mb-px border-b-2 pb-3 text-sm font-medium ${
+                  activeTab === "posts"
+                    ? "border-[#0f0f0f] text-[#0f0f0f]"
+                    : "border-transparent text-[#606060] hover:text-[#0f0f0f]"
+                }`}
+              >
+                Posts
+              </button>
+              <HiMagnifyingGlass className="ml-auto mb-3 h-5 w-5 text-[#606060]" />
             </div>
 
-            {videos.length === 0 ? (
-              <div className="mt-6 rounded-[1.5rem] border border-dashed border-[#e5e5e5] p-8 text-center text-sm text-[#606060]">
-                No videos uploaded yet.
-              </div>
+            {activeTab === "videos" ? (
+              videos.length === 0 ? (
+                <div className="mt-6 rounded-[1.5rem] border border-dashed border-[#e5e5e5] p-8 text-center text-sm text-[#606060]">
+                  No videos uploaded yet.{" "}
+                  <Link to="/upload" className="font-medium text-[#0f0f0f] underline">
+                    Upload your first video
+                  </Link>
+                </div>
+              ) : (
+                <div className="mt-6 grid gap-x-4 gap-y-6 sm:grid-cols-2 xl:grid-cols-3">
+                  {videos.map((video) => (
+                    <ChannelVideoCard
+                      key={video._id}
+                      video={video}
+                      isOwner={true}
+                      onEdit={(videoId) => navigate(`/edit-video/${videoId}`)}
+                      onDelete={handleDeleteVideo}
+                    />
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {videos.map((video) => (
-                  <VideoCard
-                    key={video._id}
-                    video={video}
-                    isOwner={true}
-                    onEdit={(videoId) => navigate(`/edit-video/${videoId}`)}
-                    onDelete={(videoId) => navigate(`/channel/${channel?._id}`)}
-                  />
-                ))}
+              <div className="mt-6 rounded-[1.5rem] border border-dashed border-[#e5e5e5] p-8 text-center text-sm text-[#606060]">
+                No posts yet.
               </div>
             )}
           </div>

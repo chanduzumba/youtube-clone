@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
+//categories default values
 const categories = [
   "Music",
   "Gaming",
@@ -20,6 +21,7 @@ const visibilityOptions = ["public", "private", "unlisted"];
 function EditVideo() {
   const { id } = useParams();
   const navigate = useNavigate();
+  // State variables to manage video data, form inputs, loading state, saving state, and error messages
   const [video, setVideo] = useState(null);
   const [form, setForm] = useState({
     title: "",
@@ -37,6 +39,7 @@ function EditVideo() {
   useEffect(() => {
     const fetchVideo = async () => {
       try {
+        // fetch video details from backend using video id
         setLoading(true);
         const response = await axios.get(`http://localhost:5000/api/videos/${id}`);
         const existingVideo = response.data?.video;
@@ -62,6 +65,7 @@ function EditVideo() {
     fetchVideo();
   }, [id]);
 
+  // Validates the form inputs to ensure all required fields are filled
   const handleUpdate = async (event) => {
     event.preventDefault();
     if (!form.title.trim() || !form.description.trim() || !form.thumbnailUrl.trim() || !form.videoUrl.trim()) {
@@ -78,6 +82,7 @@ function EditVideo() {
     try {
       setSaving(true);
       setError("");
+      // Sends a PUT request to update the video details on the backend
       const response = await axios.put(
         `http://localhost:5000/api/videos/${id}`,
         {
@@ -93,6 +98,7 @@ function EditVideo() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      // route to watch video
       navigate(`/watch/${response.data.video._id}`);
     } catch (err) {
       setError(err.response?.data?.message || "Unable to update video.");
@@ -101,6 +107,7 @@ function EditVideo() {
     }
   };
 
+  // Handles video deletion by sending a DELETE request to the backend and navigating back to the profile page
   const handleDelete = async () => {
     if (!window.confirm("Delete this video permanently?")) return;
     const token = localStorage.getItem("token");
@@ -110,6 +117,7 @@ function EditVideo() {
     }
 
     try {
+      // Delete api call to backend 
       await axios.delete(`http://localhost:5000/api/videos/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -128,7 +136,7 @@ function EditVideo() {
       <div className="rounded-[2rem] border border-[#e5e5e5] bg-white p-8 shadow-sm">
         <h1 className="text-3xl font-semibold text-[#0f172a]">Edit video</h1>
         <p className="mt-2 text-sm text-[#64748b]">Update your video details, then save to apply changes.</p>
-
+{/* Form to edit video details */}
         <form className="mt-8 space-y-6" onSubmit={handleUpdate}>
           <div>
             <label className="mb-2 block text-sm font-medium text-[#0f172a]">Title</label>

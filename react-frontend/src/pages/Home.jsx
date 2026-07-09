@@ -19,6 +19,7 @@ const categories = [
 ];
 
 const Home = () => {
+  // State variables to manage videos, loading state, error messages, selected category, and search query
   const location = useLocation();
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +39,7 @@ const Home = () => {
   };
 
   useEffect(() => {
+    // fetch url params
     const params = new URLSearchParams(location.search);
     setSearchQuery(params.get("search") || "");
   }, [location.search]);
@@ -55,7 +57,7 @@ const Home = () => {
         if (selectedCategory !== "All") {
           params.category = selectedCategory;
         }
-
+        // Fetches videos from the backend based on search query and selected category
         const response = await axios.get("http://localhost:5000/api/videos", { params });
         setVideos(response.data?.videos || []);
         setError("");
@@ -75,7 +77,7 @@ const Home = () => {
         {/* <div className="text-sm text-[#606060]">
           {searchQuery ? `Showing results for “${searchQuery}”` : "Browse videos"}
         </div> */}
-
+        {/* categories section */}
         <div className="flex items-center gap-2">
         <button
           type="button"
@@ -128,6 +130,7 @@ const Home = () => {
         <p className="text-[#606060]">No videos found.</p>
       )}
 
+      {/* Videos grid sections */}
       {!loading && !error && videos.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {videos.map((video) => (

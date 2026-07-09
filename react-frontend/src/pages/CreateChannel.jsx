@@ -8,6 +8,7 @@ const defaultBanner = "https://via.placeholder.com/1200x300?text=Channel+Banner"
 
 function CreateChannel() {
   const navigate = useNavigate();
+  // State variables to manage channel data, form inputs, loading state, saving state, and error messages
   const [channel, setChannel] = useState(null);
   const [form, setForm] = useState({
     channelName: "",
@@ -20,6 +21,7 @@ function CreateChannel() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    // 
     const fetchMyChannel = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -28,6 +30,7 @@ function CreateChannel() {
       }
 
       try {
+        // Fetches the current user's channel data from the backend
         const response = await axios.get("http://localhost:5000/api/channel/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -62,6 +65,7 @@ function CreateChannel() {
     return true;
   };
 
+  // Handles form submission for creating or updating a channel
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validate()) return;
@@ -74,6 +78,7 @@ function CreateChannel() {
 
     try {
       setSaving(true);
+      // Sets the authorization header for the request
       const headers = { Authorization: `Bearer ${token}` };
 
       const payload = {
@@ -83,6 +88,7 @@ function CreateChannel() {
         banner: form.banner,
       };
 
+      // If a channel already exists, it updates the channel; otherwise, it creates a new channel
       const response = channel
         ? await axios.put(`http://localhost:5000/api/channel/${channel._id}`, payload, { headers })
         : await axios.post("http://localhost:5000/api/channel", payload, { headers });
@@ -107,7 +113,7 @@ function CreateChannel() {
             ? "Update your channel details and branding."
             : "Create a channel so you can upload videos and share them with everyone."}
         </p>
-
+        {/* Create channel form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="mb-2 block text-sm font-medium text-[#0f172a]">Channel name</label>

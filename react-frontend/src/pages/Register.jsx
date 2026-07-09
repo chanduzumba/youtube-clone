@@ -5,11 +5,13 @@ import toast from "react-hot-toast";
 
 function Register() {
   const navigate = useNavigate();
+  // State variables to manage form inputs, validation errors, server error messages, and loading state
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  //form validation
   const validate = () => {
     const nextErrors = {};
     if (!form.username.trim()) nextErrors.username = "Username is required";
@@ -27,6 +29,7 @@ function Register() {
     try {
       setLoading(true);
       setServerError("");
+      //auth regiter api call to register new user
       await axios.post("http://localhost:5000/api/auth/register", {
         username: form.username,
         email: form.email,
@@ -47,7 +50,7 @@ function Register() {
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
         <h1 className="text-2xl font-semibold text-[#0f0f0f]">Create account</h1>
         <p className="mt-2 text-sm text-[#606060]">Sign up to start watching and uploading videos.</p>
-
+        {/* Registration form */}
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="mb-1 block text-sm font-medium text-[#0f0f0f]">Username</label>

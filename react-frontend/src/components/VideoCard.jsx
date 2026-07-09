@@ -1,60 +1,52 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { HiEllipsisVertical, HiOutlineTrash, HiPencilSquare } from "react-icons/hi2";
-
-const formatRelativeTime = (value) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Recently uploaded";
-
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const weeks = Math.floor(days / 7);
-  const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
-
-  if (years > 0) return `${years} year${years > 1 ? "s" : ""} ago`;
-  if (months > 0) return `${months} month${months > 1 ? "s" : ""} ago`;
-  if (weeks > 0) return `${weeks} week${weeks > 1 ? "s" : ""} ago`;
-  if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
-  if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-  return "Just now";
-};
-
-const formatDuration = (seconds) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-};
+import {
+  HiEllipsisVertical,
+  HiOutlineTrash,
+  HiPencilSquare,
+} from "react-icons/hi2";
+import { formatRelativeTime, formatDuration  } from "../utils/videoHelpers"
 
 const VideoCard = ({ video, isOwner = false, onEdit, onDelete }) => {
+  // Controls the visibility of the video actions menu
   const [menuOpen, setMenuOpen] = useState(false);
-  const relativeTime = useMemo(() => formatRelativeTime(video.createdAt), [video.createdAt]);
 
+  // Memoizes the relative upload time to avoid unnecessary recalculations
+  const relativeTime = useMemo(
+    () => formatRelativeTime(video.createdAt),
+    [video.createdAt]
+  );
+
+  // Opens or closes the options menu without triggering navigation
   const handleToggleMenu = (event) => {
     event.preventDefault();
     event.stopPropagation();
+
     setMenuOpen((prev) => !prev);
   };
 
+  // Invokes the parent edit handler
   const handleEditClick = (event) => {
     event.preventDefault();
     event.stopPropagation();
+
     setMenuOpen(false);
     onEdit?.(video._id);
   };
 
+  // Invokes the parent delete handler
   const handleDeleteClick = (event) => {
     event.preventDefault();
     event.stopPropagation();
+
     setMenuOpen(false);
     onDelete?.(video._id);
   };
 
   return (
+    // Displays a YouTube-style video card
     <article className="w-full max-w-[320px] overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
+      {/* Thumbnail section */}
       <div className="relative">
         <Link to={`/watch/${video._id}`} className="block">
           <img
@@ -62,10 +54,14 @@ const VideoCard = ({ video, isOwner = false, onEdit, onDelete }) => {
             alt={video.title}
             className="h-44 w-full object-cover"
           />
+
+          {/* Video duration badge */}
           <span className="absolute bottom-2 right-2 rounded bg-black/80 px-2 py-1 text-[11px] font-medium text-white">
             {formatDuration(video.duration || 0)}
           </span>
         </Link>
+
+        {/* Owner-only video management menu */}
         {isOwner && (
           <div className="absolute right-3 top-3">
             <button
@@ -76,6 +72,8 @@ const VideoCard = ({ video, isOwner = false, onEdit, onDelete }) => {
             >
               <HiEllipsisVertical className="h-4 w-4" />
             </button>
+
+            {/* Dropdown menu */}
             {menuOpen && (
               <div className="absolute right-0 top-full z-10 mt-2 w-40 rounded-xl border border-[#e5e5e5] bg-white shadow-lg">
                 <button
@@ -86,6 +84,7 @@ const VideoCard = ({ video, isOwner = false, onEdit, onDelete }) => {
                   <HiPencilSquare className="h-4 w-4" />
                   Edit video
                 </button>
+
                 <button
                   type="button"
                   onClick={handleDeleteClick}
@@ -100,7 +99,9 @@ const VideoCard = ({ video, isOwner = false, onEdit, onDelete }) => {
         )}
       </div>
 
+      {/* Video information */}
       <div className="flex gap-3 p-3">
+        {/* Channel avatar */}
         <img
           src={video.channel?.logo || video.uploader?.avatar}
           alt={video.channel?.channelName || video.uploader?.username}
@@ -108,18 +109,21 @@ const VideoCard = ({ video, isOwner = false, onEdit, onDelete }) => {
         />
 
         <div className="min-w-0 flex-1">
+          {/* Video title */}
           <div className="relative flex items-start justify-between gap-2">
             <div>
               <h3 className="line-clamp-2 text-sm font-semibold text-[#0f0f0f]">
                 {video.title}
               </h3>
             </div>
-           
           </div>
 
+          {/* Channel name */}
           <p className="mt-1 text-sm text-[#606060]">
             {video.channel?.channelName || video.uploader?.username}
           </p>
+
+          {/* Views and upload time */}
           <p className="text-sm text-[#606060]">
             {video.views} views • {relativeTime}
           </p>

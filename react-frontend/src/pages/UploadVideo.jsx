@@ -19,6 +19,7 @@ const visibilityOptions = ["public", "private", "unlisted"];
 
 function UploadVideo() {
   const navigate = useNavigate();
+  // state variables to manage form inputs, error messages, and saving state
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -48,7 +49,7 @@ function UploadVideo() {
     try {
       setSaving(true);
       setError("");
-
+      //api call to post video data
       const response = await axios.post(
         "http://localhost:5000/api/videos",
         {
@@ -64,7 +65,7 @@ function UploadVideo() {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
+      // navigate to watch newly uploaded video
       navigate(`/watch/${response.data.video._id}`);
     } catch (err) {
       setError(err.response?.data?.message || "Unable to upload video.");
@@ -78,7 +79,7 @@ function UploadVideo() {
       <div className="rounded-[2rem] border border-[#e5e5e5] bg-white p-8 shadow-sm">
         <h1 className="text-3xl font-semibold text-[#0f172a]">Upload video</h1>
         <p className="mt-2 text-sm text-[#64748b]">Share your next video with the world from your channel.</p>
-
+        {/*  upload video form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="mb-2 block text-sm font-medium text-[#0f172a]">Title</label>

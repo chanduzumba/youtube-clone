@@ -3,12 +3,9 @@ import {
   HiBars3,
   HiMagnifyingGlass,
   HiMicrophone,
-  HiVideoCamera,
   HiBell,
-  HiUserCircle,
   HiPlus,
 } from "react-icons/hi2";
-import { FaRegUserCircle } from "react-icons/fa";
 import { HiEllipsisVertical } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -16,8 +13,8 @@ import { toggleSidebar } from "../redux/sidebarSlice";
 import { Link } from "react-router-dom";
 import SignInButton from "./SignInButton";
 
+// Reusable YouTube logo component displayed in the header
 const YouTubeLogo = () => (
-  // Renders the YouTube brand logo shown in the top header
   <div className="flex items-center justify-items-start select-none">
     <svg viewBox="0 0 30 20" className="mr-0 h-5" aria-hidden="true">
       <path
@@ -37,20 +34,31 @@ const YouTubeLogo = () => (
 );
 
 export default function Header() {
+  // Stores the current search input
   const [query, setQuery] = useState("");
+
+  // Stores the authenticated user's information
   const [user, setUser] = useState(null);
+
+  // Controls the visibility of the profile dropdown menu
   const [menuOpen, setMenuOpen] = useState(false);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Reference to the profile menu for outside click detection
   const menuRef = useRef(null);
 
+  // Load logged-in user details from localStorage when the component mounts
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
 
+  // Close the profile menu when the user clicks anywhere outside it
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -59,12 +67,15 @@ export default function Header() {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handles the search form submission without reloading the page
+  // Redirects to the search results page using the entered query
   const handleSearch = (e) => {
     e.preventDefault();
+
     const trimmedQuery = query.trim();
 
     if (trimmedQuery) {
@@ -74,18 +85,24 @@ export default function Header() {
     }
   };
 
+  // Clears authentication data and redirects the user to the home page
   const handleSignOut = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+
+    // Notify other components that authentication state has changed
     window.dispatchEvent(new Event("auth-state-changed"));
+
     setUser(null);
     setMenuOpen(false);
     navigate("/");
   };
 
   return (
-    // Top header with menu, search, and action buttons for the app shell
+    // Application header containing navigation, search bar and user actions
     <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-[#e5e5e5] bg-white px-4">
+
+      {/* Left section - hamburger menu and YouTube logo */}
       <div className="flex min-w-[170px] items-center gap-4">
         <button
           onClick={() => dispatch(toggleSidebar())}
@@ -94,11 +111,13 @@ export default function Header() {
         >
           <HiBars3 className="h-6 w-6 text-zinc-800" />
         </button>
+
         <a href="/">
           <YouTubeLogo />
         </a>
       </div>
 
+      {/* Center section - search bar (hidden on small screens) */}
       <div className="mx-4 hidden max-w-[720px] flex-1 justify-center sm:flex">
         <form onSubmit={handleSearch} className="flex w-full">
           <div className="flex h-10 flex-1 items-center rounded-l-full border border-[#ccc] pl-4 pr-2 focus-within:border-[#1c62b9] focus-within:shadow-[inset_0_0_0_1px_#1c62b9]">
@@ -110,6 +129,7 @@ export default function Header() {
               className="w-full text-[16px] outline-none placeholder:text-[#606060]"
             />
           </div>
+
           <button
             type="submit"
             className="flex h-10 w-16 items-center justify-center rounded-r-full border border-l-0 border-[#ccc] bg-[#f8f8f8] hover:bg-[#f0f0f0]"
@@ -118,6 +138,8 @@ export default function Header() {
             <HiMagnifyingGlass className="h-5 w-5 text-zinc-700" />
           </button>
         </form>
+
+        {/* Voice search button (UI only) */}
         <button
           className="ml-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#f8f8f8] hover:bg-[#f0f0f0]"
           aria-label="Search with voice"
@@ -126,41 +148,26 @@ export default function Header() {
         </button>
       </div>
 
-      {/* <div className="flex min-w-42.5 items-center justify-end gap-2">
-        <button
-          className="rounded-full p-2 hover:bg-black/5"
-          aria-label="Create"
-        >
-          <HiVideoCamera className="h-6 w-6 text-[#0f0f0f]" />
-        </button>
-        <button
-          className="rounded-full p-2 hover:bg-black/5"
-          aria-label="Notifications"
-        >
-          <HiBell className="h-6 w-6 text-[#0f0f0f]" />
-        </button>
-        <button
-          className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 text-sm font-medium text-white"
-          aria-label="Account"
-        >
-          C
-        </button>
-      </div> */}
+      {/* Right section - renders different actions based on authentication state */}
       <div className="flex min-w-42.5 items-center justify-end gap-2">
         {user ? (
           <>
+            {/* Authenticated user actions */}
             <button
               className="rounded-3xl bg-[#f2f2f2] p-2 flex items-center"
               aria-label="Create"
             >
               <HiPlus className="h-5 w-5 text-zinc-700" /> Create
             </button>
+
             <button
               className="rounded-full bg-[#f2f2f2] p-2"
               aria-label="Notifications"
             >
               <HiBell className="h-5 w-5 text-zinc-700" />
             </button>
+
+            {/* User avatar and account dropdown */}
             <div className="relative" ref={menuRef}>
               <button
                 type="button"
@@ -178,6 +185,7 @@ export default function Header() {
                 />
               </button>
 
+              {/* Account menu */}
               {menuOpen && (
                 <div className="absolute right-0 top-11 w-44 rounded-xl border border-[#e5e5e5] bg-white p-2 shadow-lg">
                   <Link
@@ -187,6 +195,7 @@ export default function Header() {
                   >
                     Your Channel
                   </Link>
+
                   <button
                     type="button"
                     onClick={handleSignOut}
@@ -200,9 +209,11 @@ export default function Header() {
           </>
         ) : (
           <>
+            {/* Guest user actions */}
             <button className="signin-btn px-3 py-1.5 flex items-center gap-2 font-black transition-colors duration-200 cursor-pointer">
               <HiEllipsisVertical className="text-xl" />
             </button>
+
             <SignInButton />
           </>
         )}
